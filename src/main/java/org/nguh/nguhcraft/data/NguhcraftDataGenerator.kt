@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider
 import net.minecraft.block.Block
 import net.minecraft.block.Blocks
+import net.minecraft.block.SlabBlock
 import net.minecraft.client.data.BlockStateModelGenerator
 import net.minecraft.client.data.ItemModelGenerator
 import net.minecraft.component.DataComponentTypes
@@ -30,7 +31,12 @@ import net.minecraft.registry.tag.PaintingVariantTags
 import net.minecraft.registry.tag.TagKey
 import org.nguh.nguhcraft.NguhDamageTypes
 import org.nguh.nguhcraft.NguhPaintings
+import org.nguh.nguhcraft.block.Fence
+import org.nguh.nguhcraft.block.NguhBlockModels
 import org.nguh.nguhcraft.block.NguhBlocks
+import org.nguh.nguhcraft.block.Slab
+import org.nguh.nguhcraft.block.Stairs
+import org.nguh.nguhcraft.block.Wall
 import org.nguh.nguhcraft.item.NguhItems
 import java.util.concurrent.CompletableFuture
 
@@ -42,11 +48,27 @@ class NguhcraftBlockTagProvider(
     RF: CompletableFuture<RegistryWrapper.WrapperLookup>
 ) : FabricTagProvider.BlockTagProvider(O, RF) {
     override fun configure(WL: RegistryWrapper.WrapperLookup) {
+        getOrCreateTagBuilder(BlockTags.AXE_MINEABLE).let {
+            for (B in NguhBlocks.AXE_MINEABLE) it.add(B)
+        }
+
         getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE).let {
             for (B in NguhBlocks.PICKAXE_MINEABLE) it.add(B)
         }
 
         getOrCreateTagBuilder(BlockTags.DOORS).add(NguhBlocks.LOCKED_DOOR)
+
+        // Add blocks from families.
+        val Fences = getOrCreateTagBuilder(BlockTags.FENCES)
+        val Walls = getOrCreateTagBuilder(BlockTags.WALLS)
+        val Stairs = getOrCreateTagBuilder(BlockTags.STAIRS)
+        val Slabs = getOrCreateTagBuilder(BlockTags.SLABS)
+        for (B in NguhBlocks.ALL_VARIANT_FAMILIES) {
+            B.Fence?.let { Fences.add(it) }
+            B.Slab?.let { Slabs.add(it) }
+            B.Stairs?.let { Stairs.add(it) }
+            B.Wall?.let { Walls.add(it) }
+        }
     }
 }
 
@@ -76,6 +98,8 @@ class NguhcraftLootTableProvider(
     override fun generate() {
         NguhBlocks.DROPS_SELF.forEach { addDrop(it) }
         addDrop(NguhBlocks.LOCKED_DOOR) { B: Block -> doorDrops(B) }
+        for (S in NguhBlocks.ALL_VARIANT_FAMILY_BLOCKS.filter { it is SlabBlock })
+            addDrop(S, ::slabDrops)
 
         // Copied from nameableContainerDrops(), but modified to also
         // copy the chest variant component.
@@ -97,7 +121,7 @@ class NguhcraftLootTableProvider(
 
 class NguhcraftModelGenerator(O: FabricDataOutput) : FabricModelProvider(O) {
     override fun generateBlockStateModels(G: BlockStateModelGenerator) {
-        NguhBlocks.BootstrapModels(G)
+        NguhBlockModels.BootstrapModels(G)
     }
 
     override fun generateItemModels(G: ItemModelGenerator) {

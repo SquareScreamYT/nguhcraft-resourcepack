@@ -41,6 +41,9 @@ operator fun Vec3d.unaryMinus() = Vec3d(-x, -y, -z)
 inline fun <T> T.mapIf(Cond: Boolean, Block: (T) -> T): T
     = if (Cond) Block(this) else this
 
+/** Flatten a list of pairs to a list. */
+fun <A> List<Pair<A, A>>.flatten(): List<A> = flatMap { listOf(it.first, it.second) }
+
 /**
  * Rectangle that has X and Z bounds but ignores the Y axis. Used by regions
  * and in barrier rendering.
