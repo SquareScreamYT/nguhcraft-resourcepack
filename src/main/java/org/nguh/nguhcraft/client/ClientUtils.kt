@@ -5,14 +5,18 @@ import com.google.gson.reflect.TypeToken
 import com.mojang.logging.LogUtils
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.util.math.MatrixStack
+import net.minecraft.client.Minecraft
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
 import java.text.Normalizer
+import java.util.function.Consumer
 
-inline fun MatrixStack.Push(Transformation: MatrixStack.() -> Unit) {
-    push()
+inline fun PoseStack.Push(Transformation: PoseStack.() -> Unit) {
+    pushPose()
     Transformation()
-    pop()
+    popPose()
 }
 
 @Environment(EnvType.CLIENT)
@@ -49,6 +53,7 @@ object ClientUtils {
     val EMOJI_REPLACEMENTS = buildMap {
         putAll(LoadEmojiReplacements("/assets/nguhcraft/emoji/twemoji.json"))
         putAll(LoadEmojiReplacements("/assets/nguhcraft/emoji/nguhmoji.json"))
+        putAll(LoadEmojiReplacements("/assets/nguhcraft/emoji/nguhflags.json"))
     }
 
     /**
@@ -62,9 +67,27 @@ object ClientUtils {
         LoadEmojiReplacements("/assets/nguhcraft/emoji/replacements.json")
     )
 
+    private val LORE_STYLE = Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.GRAY)
+
     /** Get the client instance. */
     @JvmStatic
-    fun Client(): MinecraftClient = MinecraftClient.getInstance()
+    fun Client(): Minecraft = Minecraft.getInstance()
+
+    /** Format lore text in a tooltip. */
+    @JvmStatic
+    fun FormatLoreForTooltip(Consumer: Consumer<Component>, Lines: List<Component>): Boolean {
+        // This is terrible; if only Mojang would just implement this properly...
+        if (Lines.size == 1) {
+            val S = Lines.first().string
+            if (S.startsWith('\u0001')) {
+                for (Line in S.slice(1..<S.length).split('\n'))
+                    Consumer.accept(Component.literal(Line).setStyle(LORE_STYLE))
+                return true
+            }
+        }
+
+        return false
+    }
 
     /** Load emoji replacement data from a resource. */
     private fun LoadEmojiReplacements(Path: String): Map<String, String> = Gson().fromJson(

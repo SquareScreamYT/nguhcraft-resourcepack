@@ -2,26 +2,26 @@ package org.nguh.nguhcraft.client
 
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.component.ComponentType
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.*
-import net.minecraft.enchantment.Enchantment
-import net.minecraft.enchantment.Enchantments.*
-import net.minecraft.entity.attribute.EntityAttribute
-import net.minecraft.entity.attribute.EntityAttributeModifier
-import net.minecraft.entity.effect.StatusEffectInstance
-import net.minecraft.entity.effect.StatusEffects
-import net.minecraft.item.Item
-import net.minecraft.item.ItemGroup
-import net.minecraft.item.ItemGroup.DisplayContext
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.registry.entry.RegistryEntry
-import net.minecraft.text.Style
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
+import net.minecraft.ChatFormatting
+import net.minecraft.core.Holder
+import net.minecraft.core.component.DataComponentType
+import net.minecraft.core.component.DataComponents
+import net.minecraft.core.registries.Registries
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.Style
+import net.minecraft.resources.ResourceKey
+import net.minecraft.world.effect.MobEffectInstance
+import net.minecraft.world.effect.MobEffects
+import net.minecraft.world.entity.EquipmentSlotGroup
+import net.minecraft.world.entity.ai.attributes.Attribute
+import net.minecraft.world.entity.ai.attributes.AttributeModifier
+import net.minecraft.world.item.*
+import net.minecraft.world.item.CreativeModeTab.ItemDisplayParameters
+import net.minecraft.world.item.alchemy.PotionContents
+import net.minecraft.world.item.component.ItemAttributeModifiers
+import net.minecraft.world.item.component.ItemLore
+import net.minecraft.world.item.enchantment.Enchantment
+import net.minecraft.world.item.enchantment.Enchantments.*
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments.ARCANE
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments.HYPERSHOT
 import org.nguh.nguhcraft.enchantment.NguhcraftEnchantments.SMELTING
@@ -29,31 +29,20 @@ import java.util.*
 
 @Environment(EnvType.CLIENT)
 object Treasures {
-    private val LORE_STYLE = Style.EMPTY.withItalic(false).withFormatting(Formatting.GRAY)
+    fun AddAll(Ctx: ItemDisplayParameters, Entries: CreativeModeTab.Output) {
+        val ESSENCE_FLASK = Potion(Ctx, "ancient_drop_of_cherry", 0xFFBFD6,
+            MobEffectInstance(MobEffects.HEALTH_BOOST, 60 * 20, 24),
+            MobEffectInstance(MobEffects.REGENERATION, 60 * 20, 5)
+        ).lore("ancient_drop_of_cherry").set(DataComponents.RARITY, value = Rarity.EPIC).build()
 
-    fun AddAll(Ctx: ItemGroup.DisplayContext, Entries: ItemGroup.Entries) {
-        val ESSENCE_FLASK = Potion(Ctx, "Ancient Drop of Cherry", 0xFFBFD6,
-            StatusEffectInstance(StatusEffects.HEALTH_BOOST, 60 * 20, 24),
-            StatusEffectInstance(StatusEffects.REGENERATION, 60 * 20, 5)
-        ).lore("""
-            Draught containing shavings from the walls
-            of the Slab Exchange.
-    
-            When Rabo banished the Ancients underground,
-            He wept, and from His tears sprang the cherry
-            tree. While the cherry wood of today no longer
-            bears His power, a sliver of it yet remains in
-            the amaranthine walls of the Exchange.
-        """).build()
-
-        val MOLTEN_PICKAXE = Builder(Ctx, Items.NETHERITE_PICKAXE, Name("Molten Pickaxe"))
+        val MOLTEN_PICKAXE = Builder(Ctx, Items.NETHERITE_PICKAXE, "molten_pickaxe")
             .unbreakable()
             .enchant(EFFICIENCY, 10)
             .enchant(FORTUNE, 5)
             .enchant(SMELTING)
             .build()
 
-        val SCYTHE_OF_DOOM = Builder(Ctx, Items.NETHERITE_HOE, Name("Scythe of Doom"))
+        val SCYTHE_OF_DOOM = Builder(Ctx, Items.NETHERITE_HOE, "scythe_of_doom")
             .unbreakable()
             .enchant(EFFICIENCY, 10)
             .enchant(FORTUNE, 5)
@@ -63,7 +52,7 @@ object Treasures {
             .enchant(SHARPNESS, 40)
             .build()
 
-        val THOU_HAST_BEEN_YEETEN = Builder(Ctx, Items.MACE, Name("Thou Hast Been Yeeten"))
+        val THOU_HAST_BEEN_YEETEN = Builder(Ctx, Items.MACE, "thou_hast_been_yeeten")
             .unbreakable()
             .enchant(ARCANE)
             .enchant(SHARPNESS, 255)
@@ -71,18 +60,18 @@ object Treasures {
             .enchant(CHANNELING, 2)
             .build()
 
-        val THOU_HAS_BEEN_YEETEN_CROSSBOW = Builder(Ctx, Items.CROSSBOW, Name("Thou Hast Been Yeeten (Crossbow Version)"))
+        val THOU_HAS_BEEN_YEETEN_CROSSBOW = Builder(Ctx, Items.CROSSBOW, "thou_hast_been_yeeten_crossbow_version")
             .unbreakable()
             .enchant(HYPERSHOT, 100)
             .build()
 
-        val TRIDENT_OF_THE_SEVEN_WINDS = Builder(Ctx, Items.TRIDENT, Name("Trident of the Seven Winds"))
+        val TRIDENT_OF_THE_SEVEN_WINDS = Builder(Ctx, Items.TRIDENT, "trident_of_the_seven_winds")
             .unbreakable()
             .enchant(RIPTIDE, 10)
             .enchant(IMPALING, 10)
             .build()
 
-        val WRATH_OF_ZEUS = Builder(Ctx, Items.TRIDENT, Name("Wrath of Zeus"))
+        val WRATH_OF_ZEUS = Builder(Ctx, Items.TRIDENT, "wrath_of_zeus")
             .unbreakable()
             .enchant(SHARPNESS, 50)
             .enchant(MULTISHOT, 100)
@@ -90,27 +79,27 @@ object Treasures {
             .enchant(LOYALTY, 3)
             .build()
 
-        Entries.add(THOU_HAST_BEEN_YEETEN)
-        Entries.add(THOU_HAS_BEEN_YEETEN_CROSSBOW)
-        Entries.add(WRATH_OF_ZEUS)
-        Entries.add(TRIDENT_OF_THE_SEVEN_WINDS)
-        Entries.add(SCYTHE_OF_DOOM)
-        Entries.add(MOLTEN_PICKAXE)
-        Entries.add(ESSENCE_FLASK)
-        Entries.add(ItemStack(Items.PETRIFIED_OAK_SLAB))
+        Entries.accept(THOU_HAST_BEEN_YEETEN)
+        Entries.accept(THOU_HAS_BEEN_YEETEN_CROSSBOW)
+        Entries.accept(WRATH_OF_ZEUS)
+        Entries.accept(TRIDENT_OF_THE_SEVEN_WINDS)
+        Entries.accept(SCYTHE_OF_DOOM)
+        Entries.accept(MOLTEN_PICKAXE)
+        Entries.accept(ESSENCE_FLASK)
+        Entries.accept(ItemStack(Items.PETRIFIED_OAK_SLAB))
     }
 
 
-    private fun Name(Name: String, Format: Formatting = Formatting.GOLD): Text = Text.literal(Name)
-        .setStyle(Style.EMPTY.withItalic(false).withFormatting(Format))
+    private fun Name(Name: String, Format: ChatFormatting = ChatFormatting.GOLD): Component = Component.literal(Name)
+        .setStyle(Style.EMPTY.withItalic(false).applyFormat(Format))
 
     private fun Potion(
-        Ctx: DisplayContext,
-        Name: String,
+        Ctx: ItemDisplayParameters,
+        Key: String,
         Colour: Int,
-        vararg Effects: StatusEffectInstance
-    ) = Builder(Ctx, Items.POTION, Name(Name))
-        .set(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent(
+        vararg Effects: MobEffectInstance
+    ) = Builder(Ctx, Items.POTION, Key)
+        .set(DataComponents.POTION_CONTENTS, PotionContents(
             Optional.empty(),
             Optional.of(Colour),
             listOf(*Effects),
@@ -118,38 +107,36 @@ object Treasures {
         ))
 
 
-    private class Builder(private val Ctx: DisplayContext, I: Item, Name: Text) {
+    private class Builder(private val Ctx: ItemDisplayParameters, I: Item, Key: String) {
         private val S = ItemStack(I)
         private fun apply(F: (S: ItemStack) -> Unit) = also { F(S) }
-        init { set(DataComponentTypes.CUSTOM_NAME, Name) }
+        init { set(DataComponents.CUSTOM_NAME, Component.translatable("item.nguhcraft.$Key")) }
 
         /** Build the item stack. */
         fun build() = S
 
         /** Enchant the item stack. */
-        fun enchant(Enchantment: RegistryKey<Enchantment>, Level: Int = 1): Builder {
-            val RL = Ctx.lookup.getOrThrow(RegistryKeys.ENCHANTMENT)
+        fun enchant(Enchantment: ResourceKey<Enchantment>, Level: Int = 1): Builder {
+            val RL = Ctx.holders.lookupOrThrow(Registries.ENCHANTMENT)
             val Entry = RL.getOrThrow(Enchantment)
-            return apply { S.addEnchantment(Entry, Level) }
+            return apply { S.enchant(Entry, Level) }
         }
 
         /** Add lore to the stack. */
-        fun lore(LoreText: String): Builder {
-            return set(DataComponentTypes.LORE, LoreComponent(
-                LoreText.trimIndent().split("\n").map {
-                    Text.literal(it).setStyle(LORE_STYLE)
-                }
+        fun lore(Key: String): Builder {
+            return set(DataComponents.LORE, ItemLore(
+                listOf(Component.translatable("lore.nguhcraft.${Key}"))
             ))
         }
 
         /** Add an attribute modifier. */
         fun modifier(
-            Attr: RegistryEntry<EntityAttribute>,
-            Slot: AttributeModifierSlot,
-            Mod: EntityAttributeModifier
+            Attr: Holder<Attribute>,
+            Slot: EquipmentSlotGroup,
+            Mod: AttributeModifier
         ) = set(
-            DataComponentTypes.ATTRIBUTE_MODIFIERS,
-            AttributeModifiersComponent.DEFAULT.with(
+            DataComponents.ATTRIBUTE_MODIFIERS,
+            ItemAttributeModifiers.EMPTY.withModifierAdded(
                 Attr,
                 Mod,
                 Slot
@@ -157,10 +144,10 @@ object Treasures {
         )
 
         /** Set a component on this item stack. */
-        fun <T> set(type: ComponentType<in T>, value: T? = null)
+        fun <T> set(type: DataComponentType<in T>, value: T? = null)
             = apply { it.set(type, value) }
 
         /** Make this item stack unbreakable. */
-        fun unbreakable() = set(DataComponentTypes.UNBREAKABLE, net.minecraft.util.Unit.INSTANCE)
+        fun unbreakable() = set(DataComponents.UNBREAKABLE, net.minecraft.util.Unit.INSTANCE)
     }
 }
